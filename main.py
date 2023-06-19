@@ -12,21 +12,27 @@ class MyServer():
 
 
                             }
+        self.global_answer = 'unknown'
 
         # starting server
         self.sqlite = SQLite()
-        self.s_srv = socket.create_server(('127.0.0.1', 1234))
+        self.s_srv = socket.create_server(('127.0.0.1', 8698))
         self.s_srv.listen(100)
+
         while True:
 
-            print('working..')
-            self.client_socket, address = self.s_srv.accept()
-            with self.client_socket:
-                self.client_socket.send(bytes("Добро пожаловать на сервер!!!", 'utf-8'))
-                self.req_data = self.client_socket.recv(1024).decode('utf-8')
-                print(self.req_data)
-                #self.client_socket.send(bytes(self.req_data, 'utf-8'))
-                self.action_dict[self.req_data.split()[0]]()
+            print('сервер начал слушать, и ждёт подключения')
+            while True:
+                self.client_socket, address = self.s_srv.accept()
+                self.full_msg = ""
+                data = self.client_socket.recv(1024)
+                    # if data == "":
+                    #     break
+                self.full_msg += data.decode('utf-8')
+                print(self.full_msg)
+                answer = self.action_dict[self.full_msg.split()[0]]()
+                self.client_socket.send(bytes(answer, 'utf-8'))
+                self.client_socket.close()
                 # self.client_socket.sendmsg()
 
 
@@ -40,8 +46,8 @@ class MyServer():
         self.client_socket.send(content)
 
     def new_user_handler(self):
-        answer = self.sqlite.create_user(*self.req_data.split()[1:])
-        self.client_socket.send(answer.encode('utf-8'))
+        return self.sqlite.create_user(*self.full_msg.split()[1:])
+
 
 
     def dialog_handler(self):
@@ -71,9 +77,9 @@ class SQLite():
         if not self.curs.fetchone():
             self.curs.execute(f"INSERT INTO users VALUES (?, ?, ?)", (username, password, gender))
             self.db.commit()
-            return ("User created!")
+            return 'True'
         else:
-            return ("Error! User already exists!")
+            return 'False'
 
 
 
