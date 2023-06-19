@@ -58,15 +58,17 @@ class SQLite():
         self.curs = self.db.cursor()
 
         self.curs.execute('''CREATE TABLE IF NOT EXISTS users (
-        login TEXT,
+        login TEXT PRIMARY KEY,
+        name TEXT ,
         pass TEXT,
-        gender INT 
+        gender INTEGER DEFAULT 0
         )''')
         self.db.commit()
 
     def create_user(self, username, password, gender):
-        self.curs.execute('''SELECT login FROM users''')
-        if self.curs.fetchone() is None:
+        self.curs.execute("SELECT login FROM users WHERE login = '{username}'")
+        result = self.curs.fetchone()
+        if not self.curs.fetchone():
             self.curs.execute(f"INSERT INTO users VALUES (?, ?, ?)", (username, password, gender))
             self.db.commit()
             return ("User created!")
