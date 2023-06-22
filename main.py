@@ -10,17 +10,15 @@ class MyServer():
                             'dialog': self.dialog_handler,
                             'new_msg': self.new_msg_handler
 
-
                             }
         self.global_answer = 'unknown'
+        self.sqlite = SQLite()
 
         # starting server
-        self.sqlite = SQLite()
         self.s_srv = socket.create_server(('127.0.0.1', 8698))
         self.s_srv.listen(100)
 
         while True:
-
             print('сервер начал слушать, и ждёт подключения')
             while True:
                 self.client_socket, address = self.s_srv.accept()
@@ -34,8 +32,6 @@ class MyServer():
                 self.client_socket.send(bytes(answer, 'utf-8'))
                 self.client_socket.close()
                 # self.client_socket.sendmsg()
-
-
 
     def main_data_handler(self):
         content = 'MAIN DATA FROM SERVER!!!!!!!!'.encode('utf-8')
