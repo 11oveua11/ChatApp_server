@@ -8,10 +8,11 @@ class MyServer():
                             'users': self.users_handler,
                             'new_user': self.new_user_handler,
                             'dialog': self.dialog_handler,
-                            'new_msg': self.new_msg_handler
+                            'new_msg': self.new_msg_handler,
+                            'test': self.test_connect_handler
 
                             }
-        self.global_answer = 'unknown'
+        self.global_answer = 'default'
         self.sqlite = SQLite()
 
         # starting server
@@ -28,8 +29,8 @@ class MyServer():
                     #     break
                 self.full_msg += data.decode('utf-8')
                 print(self.full_msg)
-                answer = self.action_dict[self.full_msg.split()[0]]()
-                self.client_socket.send(bytes(answer, 'utf-8'))
+                self.global_answer = self.action_dict[self.full_msg.split()[0]]()
+                self.client_socket.send(bytes(self.global_answer, 'utf-8'))
                 self.client_socket.close()
                 # self.client_socket.sendmsg()
 
@@ -44,6 +45,8 @@ class MyServer():
     def new_user_handler(self):
         return self.sqlite.create_user(*self.full_msg.split()[1:])
 
+    def test_connect_handler(self):
+        return 'test_passed'
 
 
     def dialog_handler(self):
@@ -68,14 +71,15 @@ class SQLite():
         self.db.commit()
 
     def create_user(self, username, password, gender):
-        self.curs.execute("SELECT login FROM users WHERE login = '{username}'")
+        self.curs.execute("SELECT login FROM users WHERE login = ?;", (username,))
         result = self.curs.fetchone()
-        if not self.curs.fetchone():
+        print(result)
+        if not result:
             self.curs.execute(f"INSERT INTO users VALUES (?, ?, ?)", (username, password, gender))
             self.db.commit()
-            return 'True'
+            return 'user_created'
         else:
-            return 'False'
+            return 'user_exists'
 
 
 
